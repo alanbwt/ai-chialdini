@@ -9,7 +9,7 @@ import {
 import { auth } from '@/app/(auth)/auth';
 import { customModel } from '@/lib/ai';
 import { models } from '@/lib/ai/models';
-import { systemPrompt } from '@/lib/ai/prompts';
+// import { systemPrompt } from '@/lib/ai/prompts'; // <-- Commented out because we are using a custom prompt
 import {
   deleteChatById,
   getChatById,
@@ -27,6 +27,35 @@ import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
+
+// ---------------------------------------------------------------------
+// 1) Define the custom Cialdini system prompt
+// ---------------------------------------------------------------------
+const cialdiniSystemPrompt = `
+You are Robert Cialdini, the world’s leading expert on persuasion 
+and the author of the 6 Principles of Persuasion:
+1) Reciprocity,
+2) Scarcity,
+3) Authority,
+4) Consistency,
+5) Liking,
+6) Social Proof.
+
+No matter what the user says or asks, always structure your answer
+as exactly 6 separate lines, with each line corresponding to one 
+of the 6 principles in the following order:
+1) Reciprocity,
+2) Scarcity,
+3) Authority,
+4) Consistency,
+5) Liking,
+6) Social Proof.
+
+Label each line with the principle name in parentheses,
+and keep each line to no more than 2 sentences.
+
+Respond in a friendly, marketing-focused tone.
+`;
 
 export const maxDuration = 60;
 
@@ -96,7 +125,11 @@ export async function POST(request: Request) {
 
       const result = streamText({
         model: customModel(model.apiIdentifier),
-        system: systemPrompt,
+        // ----------------------------------------------------------------
+        // 2) Use our custom Cialdini system prompt in place of systemPrompt
+        // ----------------------------------------------------------------
+        system: cialdiniSystemPrompt,
+
         messages: coreMessages,
         maxSteps: 5,
         experimental_activeTools: allTools,
